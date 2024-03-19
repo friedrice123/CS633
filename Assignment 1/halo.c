@@ -1,4 +1,4 @@
-#include <mpi.h>
+#include "mpi.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -18,51 +18,27 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Parsing arguments for the side length of the data points square
-    int N_side = atoi(argv[2]); // Side length of the data points square
+    int Px = atoi(argv[1]); // Number of processes in the x-direction
+    int N = atoi(argv[2]); // Total no of data points square per process
+    int N_side = sqrt(N); // Side length of the data points square
     int num_time_steps = atoi(argv[3]);
     int seed = atoi(argv[4]);
     int stencil = atoi(argv[5]); // Stencil type: 5-point or 9-point
 
-    // Total number of data points per process
-    int total_data_points = N_side * N_side;
-
     // Initialize data points with seed
     srand(seed * (rank + 10));
-    double* data = (double*)malloc(total_data_points * sizeof(double));
-    for (int i = 0; i < N_side; ++i) {
-        for (int j = 0; j < N_side; ++j) {
-            data[i * N_side + j] = fabs((rand() + (i * rand()) + (j * rank)) / 100.0);
+    // Create the data matrix
+    double** data = (double**)malloc(N_side * sizeof(double*));
+    for (double i = 0; i < N_side; i++){
+        data[(int)i] = (double*)malloc(N_side * sizeof(double));
+    }
+    for (double i = 0; i < N_side; i++) {
+        for (double j = 0; j < N_side; j++) {
+            data[(int)i][(int)j] = fabs((rand() + (i * rand()) + (j * rank)) / 100.0);
         }
     }
-
-    // Check for correct process grid size
-    if (PX * PY != size) {
-        if (rank == 0) printf("Error: Px * Py does not match the number of processes.\n");
-        MPI_Finalize();
-        return 1;
-    }
-
-    // Parsing arguments
-    int N = atoi(argv[1]); // Square root of total data points per process
-    int num_time_steps = atoi(argv[2]);
-    int mode = atoi(argv[3]); // Mode for halo exchange
-
-    // Initialization of data points
-    double* data = (double*)malloc(N * N * sizeof(double));
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < N; ++j) {
-            data[i * N + j] = fabs(rand() / (double)RAND_MAX);
-        }
-    }
-
-    // Buffer for MPI_Pack and MPI_Unpack
-    int buffer_size = N * sizeof(double) + MPI_BSEND_OVERHEAD;
-    char* buffer_send = (char*)malloc(buffer_size);
-    char* buffer_recv = (char*)malloc(buffer_size);
 
     // Assuming a simple 2D grid of processes (Px x Py)
-    int Px = sqrt(size); // Example: process grid dimensions
     int Py = size / Px;
     if (Px * Py != size) {
         if (rank == 0) printf("Error: Px * Py does not match the number of processes.\n");
@@ -77,46 +53,168 @@ int main(int argc, char *argv[]) {
     // Flags to check for neighbors
     int has_top = y > 0;
     int has_bottom = y < (Py - 1);
-    // Left and right neighbors can be added similarly
+    int has_left = x > 0;
+    int has_right = x < (Px - 1);
 
     MPI_Request requests[8]; // For non-blocking communication
     int request_count = 0;
 
-    for (int step = 0; step < num_time_steps; ++step) {
-        if (mode == 2) { // Only focusing on mode 2
-            int position;
+    MPI_Status status;
+    double sTime, eTime;
+    sTime = MPI_Wtime();
 
+    for (int step = 0; step < num_time_steps; step++) {
+        if(stencil == 5) {
+            // 5-point stencil
+            double top_buff_send[N_side], top_buff_recv[N_side];
+            double bottom_buff_send[N_side], bottom_buff_recv[N_side];
+            double left_buff_send[N_side], left_buff_recv[N_side]; 
+            double right_buff_send[N_side], right_buff_recv[N_side];
+            double top[N_side], bottom[N_side], left[N_side], right[N_side];
+            int position;
             // Pack and send to top neighbor
             if (has_top) {
                 position = 0;
-                MPI_Pack(data, N, MPI_DOUBLE, buffer_send, buffer_size, &position, MPI_COMM_WORLD);
-                MPI_Isend(buffer_send, position, MPI_PACKED, rank - Px, 0, MPI_COMM_WORLD, &requests[request_count++]);
+                for(int i = 0; i < N_side; i++){
+                    MPI_Pack(&data[0][i], 1, MPI_DOUBLE, top_buff_send, N_side*(sizeof(double)), &position, MPI_COMM_WORLD);
+                }
+                MPI_Isend(top_buff_send, position, MPI_PACKED, rank - Px, rank, MPI_COMM_WORLD, &requests[request_count++]);
             }
 
             // Receive from top neighbor
             if (has_top) {
-                MPI_Irecv(buffer_recv, buffer_size, MPI_PACKED, rank - Px, 0, MPI_COMM_WORLD, &requests[request_count++]);
+                position = 0;
+                MPI_Recv(top_buff_recv, N_side*(sizeof(double)), MPI_PACKED, rank - Px, rank - Px, MPI_COMM_WORLD, &status);
+                // Wait for all communications to complete
+                MPI_Waitall(request_count, requests, MPI_STATUSES_IGNORE); // Check this later!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                for(int i = 0; i < N_side; i++){
+                    MPI_Unpack(top_buff_recv, N_side*(sizeof(double)), &position, top+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+                }
             }
 
-            // Wait for all communications to complete
-            MPI_Waitall(request_count, requests, MPI_STATUSES_IGNORE);
-
-            // Unpack received data from top neighbor
-            if (has_top) {
+            // Pack and send to bottom neighbor
+            if (has_bottom) {
                 position = 0;
-                MPI_Unpack(buffer_recv, buffer_size, &position, /* Appropriate target buffer */, N, MPI_DOUBLE, MPI_COMM_WORLD);
-                // Update data based on received data
+                for(int i = 0; i < N_side; i++){
+                    MPI_Pack(&data[N_side-1][i], 1, MPI_DOUBLE, bottom_buff_send, N_side*(sizeof(double)), &position, MPI_COMM_WORLD);
+                }
+                MPI_Isend(bottom_buff_send, position, MPI_PACKED, rank + Px, rank, MPI_COMM_WORLD, &requests[request_count++]);
+            }
+
+            // Receive from bottom neighbor
+            if (has_bottom) {
+                position = 0;
+                MPI_Recv(bottom_buff_recv, N_side*(sizeof(double)), MPI_PACKED, rank + Px, rank + Px, MPI_COMM_WORLD, &status);
+                // Wait for all communications to complete
+                MPI_Waitall(request_count, requests, MPI_STATUSES_IGNORE);
+                for(int i = 0; i < N_side; i++){
+                    MPI_Unpack(bottom_buff_recv, N_side*(sizeof(double)), &position, bottom+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+                }
+            }
+
+            // Pack and send to left neighbor
+            if (has_left) {
+                position = 0;
+                for(int i = 0; i < N_side; i++){
+                    MPI_Pack(&data[i][0], 1, MPI_DOUBLE, left_buff_send, N_side*(sizeof(double)), &position, MPI_COMM_WORLD);
+                }
+                MPI_Isend(left_buff_send, position, MPI_PACKED, rank - 1, rank, MPI_COMM_WORLD, &requests[request_count++]);
+            }
+
+            // Receive from left neighbor
+            if (has_left) {
+                position = 0;
+                MPI_Recv(left_buff_recv, N_side*(sizeof(double)), MPI_PACKED, rank - 1, rank - 1, MPI_COMM_WORLD, &status);
+                // Wait for all communications to complete
+                MPI_Waitall(request_count, requests, MPI_STATUSES_IGNORE);
+                for(int i = 0; i < N_side; i++){
+                    MPI_Unpack(left_buff_recv, N_side*(sizeof(double)), &position, left+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+                }
+            }
+
+            // Pack and send to right neighbor
+            if (has_right) {
+                position = 0;
+                for(int i = 0; i < N_side; i++){
+                    MPI_Pack(&data[i][N_side-1], 1, MPI_DOUBLE, right_buff_send, N_side*(sizeof(double)), &position, MPI_COMM_WORLD);
+                }
+                MPI_Isend(right_buff_send, position, MPI_PACKED, rank + 1, rank, MPI_COMM_WORLD, &requests[request_count++]);
+            }
+
+            // Receive from right neighbor
+            if (has_right) {
+                position = 0;
+                MPI_Recv(right_buff_recv, N_side*(sizeof(double)), MPI_PACKED, rank + 1, rank + 1, MPI_COMM_WORLD, &status);
+                // Wait for all communications to complete
+                MPI_Waitall(request_count, requests, MPI_STATUSES_IGNORE);
+                for(int i = 0; i < N_side; i++){
+                    MPI_Unpack(right_buff_recv, N_side*(sizeof(double)), &position, right+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+                }
+            }
+
+            // Update the data points
+            for (int i = 1; i < N_side - 1; i++) {
+                for (int j = 1; j < N_side - 1; j++) {
+                    data[i][j] = (data[i][j] + data[i-1][j] + data[i+1][j] + data[i][j-1] + data[i][j+1]) / 5.0;
+                }
+            }
+
+            // Update the halo points
+            if (has_top) {
+                for (int i = 1; i < N_side - 1; i++) {
+                    data[0][i] = (data[0][i] + top[i] + data[1][i] + data[0][i-1] + data[0][i+1]) / 5.0;
+                }
+            }
+
+            if (has_bottom) {
+                for (int i = 1; i < N_side - 1; i++) {
+                    data[N_side-1][i] = (data[N_side-1][i] + bottom[i] + data[N_side-2][i] + data[N_side-1][i-1] + data[N_side-1][i+1]) / 5.0;
+                }
+            }
+
+            if (has_left) {
+                for (int i = 1; i < N_side - 1; i++) {
+                    data[i][0] = (data[i][0] + left[i] + data[i+1][0] + data[i-1][0] + data[i][1]) / 5.0;
+                }
+            }
+
+            if (has_right) {
+                for (int i = 1; i < N_side - 1; i++) {
+                    data[i][N_side-1] = (data[i][N_side-1] + right[i] + data[i+1][N_side-1] + data[i-1][N_side-1] + data[i][N_side-2]) / 5.0;
+                }
+            }
+
+            // Update the corner points
+            if (has_top && has_left) {
+                data[0][0] = (data[0][0] + top[0] + data[1][0] + left[0] + data[0][1]) / 5.0;
+            }
+
+            if (has_top && has_right) {
+                data[0][N_side-1] = (data[0][N_side-1] + top[N_side-1] + data[1][N_side-1] + data[0][N_side-2] + right[0]) / 5.0;
+            }
+
+            if (has_bottom && has_left) {
+                data[N_side-1][0] = (data[N_side-1][0] + bottom[0] + data[N_side-2][0] + left[N_side-1] + data[N_side-1][1]) / 5.0;
+            }
+
+            if (has_bottom && has_right) {
+                data[N_side-1][N_side-1] = (data[N_side-1][N_side-1] + bottom[N_side-1] + data[N_side-2][N_side-1] + data[N_side-1][N_side-2] + right[N_side-1]) / 5.0;
             }
 
             // Reset request count for next iteration
             request_count = 0;
         }
-        // Additional logic for stencil computation and other modes can be added here
+    }
+    
+    eTime = MPI_Wtime();
+    double time = eTime - sTime;
+    double max_time;
+    MPI_Reduce(&time, &max_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    if (rank == 0) {
+        printf("Time taken for computing %d-point stencil: %f\n", stencil, max_time);
     }
 
     free(data);
-    free(buffer_send);
-    free(buffer_recv);
     MPI_Finalize();
     return 0;
 }
