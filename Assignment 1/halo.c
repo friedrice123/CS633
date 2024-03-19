@@ -381,6 +381,8 @@ int main(int argc, char *argv[]) {
                 data[N_side-1][N_side-2] = (data[N_side-1][N_side-2] + bottom[N_side-2] + data[N_side-2][N_side-2] + right[N_side-1] + data[N_side-1][N_side-3] + bottom[2*N_side-2] + data[N_side-3][N_side-2] + data[N_side-1][N_side-4] + data[N_side-1][N_side-1]) / 9.0;
                 data[N_side-2][N_side-2] = (data[N_side-2][N_side-2] + bottom[N_side-2] + data[N_side-1][N_side-2] + data[N_side-3][N_side-2] + data[N_side-4][N_side-2] + data[N_side-2][N_side-1] + data[N_side-2][N_side-3] + data[N_side-2][N_side-4] + right[N_side-2]) / 9.0;
             }
+            // Reset request count for next iteration
+            request_count = 0;
         }
     }
     
