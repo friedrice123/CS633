@@ -317,7 +317,6 @@ int main(int argc, char *argv[]) {
                     MPI_Unpack(right_buff_recv, 2*N_side*(sizeof(double)), &position, right+N_side+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
                 }
             }
-
             // Update the data points
             for (int i = 2; i < N_side - 2; i++) {
                 for (int j = 2; j < N_side - 2; j++) {
@@ -382,7 +381,7 @@ int main(int argc, char *argv[]) {
                 data[N_side-1][N_side-2] = (data[N_side-1][N_side-2] + bottom[N_side-2] + data[N_side-2][N_side-2] + right[N_side-1] + data[N_side-1][N_side-3] + bottom[2*N_side-2] + data[N_side-3][N_side-2] + data[N_side-1][N_side-4] + data[N_side-1][N_side-1]) / 9.0;
                 data[N_side-2][N_side-2] = (data[N_side-2][N_side-2] + bottom[N_side-2] + data[N_side-1][N_side-2] + data[N_side-3][N_side-2] + data[N_side-4][N_side-2] + data[N_side-2][N_side-1] + data[N_side-2][N_side-3] + data[N_side-2][N_side-4] + right[N_side-2]) / 9.0;
             }
-
+        }
     }
     
     eTime = MPI_Wtime();
