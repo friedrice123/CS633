@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
                 position = 0;
                 MPI_Recv(top_buff_recv, N_side*(sizeof(double)), MPI_PACKED, rank - Px, rank - Px, MPI_COMM_WORLD, &status[status_count++]);
                 
-                MPI_Waitall(request_count, requests, status); // Waiting for all communications to complete
+                MPI_Wait(&requests[request_count-1], &status[status_count-1]); // Waiting for the communication to complete
                 for(int i = 0; i < N_side; i++){
                     MPI_Unpack(top_buff_recv, N_side*(sizeof(double)), &position, top+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
                 }
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
                 position = 0;
                 MPI_Recv(bottom_buff_recv, N_side*(sizeof(double)), MPI_PACKED, rank + Px, rank + Px, MPI_COMM_WORLD, &status[status_count++]);
                 
-                MPI_Waitall(request_count, requests, status); // Waiting for all communications to complete
+                MPI_Wait(&requests[request_count-1], &status[status_count-1]); // Waiting for the communication to complete
                 for(int i = 0; i < N_side; i++){
                     MPI_Unpack(bottom_buff_recv, N_side*(sizeof(double)), &position, bottom+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
                 }
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
                 position = 0;
                 MPI_Recv(left_buff_recv, N_side*(sizeof(double)), MPI_PACKED, rank - 1, rank - 1, MPI_COMM_WORLD, &status[status_count++]);
 
-                MPI_Waitall(request_count, requests, status); // Waiting for all communications to complete
+                MPI_Wait(&requests[request_count-1], &status[status_count-1]); // Waiting for the communication to complete
                 for(int i = 0; i < N_side; i++){
                     MPI_Unpack(left_buff_recv, N_side*(sizeof(double)), &position, left+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
                 }
@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
                 position = 0;
                 MPI_Recv(right_buff_recv, N_side*(sizeof(double)), MPI_PACKED, rank + 1, rank + 1, MPI_COMM_WORLD, &status[status_count++]);
             
-                MPI_Waitall(request_count, requests, status); // Waiting for all communications to complete
+                MPI_Wait(&requests[request_count-1], &status[status_count-1]); // Waiting for the communication to complete
                 for(int i = 0; i < N_side; i++){
                     MPI_Unpack(right_buff_recv, N_side*(sizeof(double)), &position, right+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
                 }
@@ -314,7 +314,7 @@ int main(int argc, char *argv[]) {
                 position = 0;
                 MPI_Recv(top_buff_recv, 2*N_side*(sizeof(double)), MPI_PACKED, rank - Px, rank - Px, MPI_COMM_WORLD, &status[status_count++]);
                 
-                MPI_Waitall(request_count, requests, status);   // Waiting for all communications to complete
+                MPI_Wait(&requests[request_count-1], &status[status_count-1]);   // Waiting for the communication to complete
                 for(int i = 0; i < N_side; i++){
                     MPI_Unpack(top_buff_recv, 2*N_side*(sizeof(double)), &position, top+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
                 }
@@ -340,7 +340,7 @@ int main(int argc, char *argv[]) {
                 position = 0;
                 MPI_Recv(bottom_buff_recv, 2*N_side*(sizeof(double)), MPI_PACKED, rank + Px, rank + Px, MPI_COMM_WORLD, &status[status_count++]);
     
-                MPI_Waitall(request_count, requests, status);    // Waiting for all communications to complete
+                MPI_Wait(&requests[request_count-1], &status[status_count-1]);    // Waiting for the communication to complete
                 for(int i = 0; i < N_side; i++){
                     MPI_Unpack(bottom_buff_recv, 2*N_side*(sizeof(double)), &position, bottom+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
                 }
@@ -366,7 +366,7 @@ int main(int argc, char *argv[]) {
                 position = 0;
                 MPI_Recv(left_buff_recv, 2*N_side*(sizeof(double)), MPI_PACKED, rank - 1, rank - 1, MPI_COMM_WORLD, &status[status_count++]);
 
-                MPI_Waitall(request_count, requests, status);    // Waiting for all communications to complete
+                MPI_Wait(&requests[request_count-1], &status[status_count-1]);    // Waiting for the communication to complete
                 for(int i = 0; i < N_side; i++){
                     MPI_Unpack(left_buff_recv, 2*N_side*(sizeof(double)), &position, left+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
                 }
@@ -392,7 +392,7 @@ int main(int argc, char *argv[]) {
                 position = 0;
                 MPI_Recv(right_buff_recv, 2*N_side*(sizeof(double)), MPI_PACKED, rank + 1, rank + 1, MPI_COMM_WORLD, &status[status_count++]);
 
-                MPI_Waitall(request_count, requests, status);    // Waiting for all communications to complete
+                MPI_Wait(&requests[request_count-1], &status[status_count-1]);    // Waiting for the communication to complete
                 for(int i = 0; i < N_side; i++){
                     MPI_Unpack(right_buff_recv, 2*N_side*(sizeof(double)), &position, right+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
                 }
