@@ -216,6 +216,78 @@ int main(int argc, char *argv[]) {
                 data[N_side-1][N_side-1] = (data[N_side-1][N_side-1] + bottom[N_side-1] + data[N_side-2][N_side-1] + data[N_side-1][N_side-2] + right[N_side-1]) / 5.0;
             }
 
+            if(!has_top){
+                for(int i = 1; i < N_side - 1; i++){
+                    data[0][i] = (data[0][i] + data[1][i] + data[0][i-1] + data[0][i+1]) / 4.0;
+                }
+            }
+
+            if(!has_bottom){
+                for(int i = 1; i < N_side - 1; i++){
+                    data[N_side-1][i] = (data[N_side-1][i] + data[N_side-2][i] + data[N_side-1][i-1] + data[N_side-1][i+1]) / 4.0;
+                }
+            }
+
+            if(!has_left){
+                for(int i = 1; i < N_side - 1; i++){
+                    data[i][0] = (data[i][0] + data[i+1][0] + data[i-1][0] + data[i][1]) / 4.0;
+                }
+            }
+
+            if(!has_right){
+                for(int i = 1; i < N_side - 1; i++){
+                    data[i][N_side-1] = (data[i][N_side-1] + data[i+1][N_side-1] + data[i-1][N_side-1] + data[i][N_side-2]) / 4.0;
+                }
+            }
+
+            if(!has_top && !has_left){
+                data[0][0] = (data[0][0] + data[1][0] + data[0][1]) / 3.0;
+            }
+
+            if(!has_top && !has_right){
+                data[0][N_side-1] = (data[0][N_side-1] + data[1][N_side-1] + data[0][N_side-2]) / 3.0;
+            }
+
+            if(!has_bottom && !has_left){
+                data[N_side-1][0] = (data[N_side-1][0] + data[N_side-2][0] + data[N_side-1][1]) / 3.0;
+            }
+
+            if(!has_bottom && !has_right){
+                data[N_side-1][N_side-1] = (data[N_side-1][N_side-1] + data[N_side-2][N_side-1] + data[N_side-1][N_side-2]) / 3.0;
+            }
+
+            if(has_top && !has_left){
+                data[0][0] = (data[0][0] + top[0] + data[1][0] + data[0][1]) / 4.0;
+            }
+
+            if(has_top && !has_right){
+                data[0][N_side-1] = (data[0][N_side-1] + top[N_side-1] + data[1][N_side-1] + data[0][N_side-2]) / 4.0;
+            }
+
+            if(has_bottom && !has_left){
+                data[N_side-1][0] = (data[N_side-1][0] + bottom[0] + data[N_side-2][0] + data[N_side-1][1]) / 4.0;
+            }
+
+            if(has_bottom && !has_right){
+                data[N_side-1][N_side-1] = (data[N_side-1][N_side-1] + bottom[N_side-1] + data[N_side-2][N_side-1] + data[N_side-1][N_side-2]) / 4.0;
+            }
+
+            if(!has_top && has_left){
+                data[0][0] = (data[0][0] + data[1][0] + left[0] + data[0][1]) / 4.0;
+            }
+
+            if(!has_top && has_right){
+                data[0][N_side-1] = (data[0][N_side-1] + data[1][N_side-1] + right[0] + data[0][N_side-2]) / 4.0;
+            }
+
+            if(!has_bottom && has_left){
+                data[N_side-1][0] = (data[N_side-1][0] + data[N_side-2][0] + left[N_side-1] + data[N_side-1][1]) / 4.0;
+            }
+
+            if(!has_bottom && has_right){
+                data[N_side-1][N_side-1] = (data[N_side-1][N_side-1] + data[N_side-2][N_side-1] + right[N_side-1] + data[N_side-1][N_side-2]) / 4.0;
+            }
+
             // Reset request count for next iteration
             request_count = 0;
             status_count = 0;
