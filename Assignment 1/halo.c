@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            // Update the data points
+            // Update the centre data points
             for (int i = 1; i < N_side - 1; i++) {
                 for (int j = 1; j < N_side - 1; j++) {
                     data[i][j] = (data[i][j] + data[i-1][j] + data[i+1][j] + data[i][j-1] + data[i][j+1]) / 5.0;
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            // Update the corner points
+            // Update the inner corner points
             if (has_top && has_left) {
                 data[0][0] = (data[0][0] + top[0] + data[1][0] + left[0] + data[0][1]) / 5.0;
             }
@@ -236,7 +236,7 @@ int main(int argc, char *argv[]) {
                 }
             }
                 
-            // Update the corner points
+            // Update the outer corner points
             if(!has_top && !has_left){
                 data[0][0] = (data[0][0] + data[1][0] + data[0][1]) / 3.0;
             }
@@ -400,7 +400,7 @@ int main(int argc, char *argv[]) {
                     MPI_Unpack(right_buff_recv, 2*N_side*(sizeof(double)), &position, right+N_side+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
                 }
             }
-            // Update the data points
+            // Update the centre data points
             for (int i = 2; i < N_side - 2; i++) {
                 for (int j = 2; j < N_side - 2; j++) {
                     data[i][j] = (data[i][j] + data[i-1][j] + data[i+1][j] + data[i][j-1] + data[i][j+1] + data[i][j-2] + data[i][j+2] + data[i-2][j] + data[i+2][j]) / 9.0;
@@ -436,7 +436,7 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            // Update the corner points
+            // Update the inner corner points
             if (has_top && has_left) {
                 data[0][0] = (data[0][0] + top[0] + data[1][0] + left[0] + data[0][1] + top[N_side] + data[2][0] + data[0][2] + left[N_side]) / 9.0;
                 data[1][0] = (data[1][0] + top[0] + data[0][0] + data[2][0] + data[3][0] + data[1][1] + data[1][2] + left[1] + left[N_side+1]) / 9.0;
@@ -494,7 +494,7 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            // Update the corner points
+            // Update the outer corner points
             if(!has_top && !has_left){
                 data[0][0] = (data[0][0] + data[1][0] + data[0][1] + data[0][2] + data[2][0]) / 5.0;
                 data[1][0] = (data[1][0] + data[0][0] + data[2][0] + data[1][1] + data[1][2] + data[3][0]) / 6.0;
