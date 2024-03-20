@@ -594,6 +594,10 @@ int main(int argc, char *argv[]) {
     if (rank == 0) {
         printf("Time taken for computing %d-point stencil: %f\n", stencil, max_time);
     }
+    
+    for (int i = 0; i < N_side; i++){
+        free(data[i]);
+    }
 
     free(data);
     MPI_Finalize();
