@@ -2,29 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-void write_matrix_to_csv(double **data, int N_side, int process_rank) {
-    char filename[256];
-    sprintf(filename, "rank_%d.csv", process_rank);
-
-    FILE* file = fopen(filename, "w");
-    if (file == NULL) {
-        printf("Error opening file %s\n", filename);
-        return;
-    }
-
-    for (int i = 0; i < N_side; i++) {
-        for (int j = 0; j < N_side; j++) {
-            fprintf(file, "%f", data[i][j]);
-            if (j < N_side - 1)
-                fprintf(file, ", ");
-        }
-        fprintf(file, "\n");
-    }
-
-    fclose(file);
-}
-
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
 
@@ -662,7 +639,7 @@ int main(int argc, char *argv[]) {
     double max_time;
     MPI_Reduce(&time, &max_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);    // Get the maximum time taken by any process
     
-    write_matrix_to_csv(data, N_side, rank);
+    // write_matrix_to_csv(data, N_side, rank);
 
     if (rank == 0) {
         printf("Time taken for computing %d-point stencil: %f\n", stencil, max_time);
