@@ -2,29 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-void write_matrix_to_csv(double **data, int N_side, int process_rank) {
-    char filename[256];
-    sprintf(filename, "rank_%d.csv", process_rank);
-
-    FILE* file = fopen(filename, "w");
-    if (file == NULL) {
-        printf("Error opening file %s\n", filename);
-        return;
-    }
-
-    for (int i = 0; i < N_side; i++) {
-        for (int j = 0; j < N_side; j++) {
-            fprintf(file, "%f", data[i][j]);
-            if (j < N_side - 1)
-                fprintf(file, ", ");
-        }
-        fprintf(file, "\n");
-    }
-
-    fclose(file);
-}
-
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
 
@@ -61,27 +38,16 @@ int main(int argc, char *argv[]) {
     // Creating the data matrix
     double** data = (double**)malloc(N_side * sizeof(double*));
     double** data_new = (double**)malloc(N_side * sizeof(double*));
+    
     for (double i = 0; i < N_side; i++){
         data[(int)i] = (double*)malloc(N_side * sizeof(double));
         data_new[(int)i] = (double*)malloc(N_side * sizeof(double));
     }
     for (double i = 0; i < N_side; i++) {
         for (double j = 0; j < N_side; j++) {
-            data[(int)i][(int)j] = (int)i+(int)j;
-            // abs((rand() + (i * rand()) + (j * rank)) / 100.0);
+            data[(int)i][(int)j] = abs((rand() + (i * rand()) + (j * rank)) / 100.0);
         }
     }
-
-    // write_matrix_to_csv(data, N_side, rank);
-    // printf("\n\n\n");
-
-    // for (int i = 0; i < N_side; i++) {
-    //     for (int j = 0; j < N_side; j++) {
-    //         printf("%f ", data[i][j]);
-    //     }
-    //     printf("\n");  
-    // }
-    // printf("\n");
 
     int Py = size / Px;
     if (Px * Py != size) {
@@ -198,28 +164,6 @@ int main(int argc, char *argv[]) {
                     MPI_Unpack(right_buff_recv, N_side*(sizeof(double)), &position, right+i, 1, MPI_DOUBLE, MPI_COMM_WORLD);
                 }
             }
-            // if(rank == 3){
-            //     printf("top ");
-            //     for(int i=0;i<N_side;i++){
-            //         printf("%f ", top[i]);
-            //     }
-            //     printf("\n");
-            //     printf("bottom ");
-            //     for(int i=0;i<N_side;i++){
-            //         printf("%f ", bottom[i]);
-            //     }
-            //     printf("\n");
-            //     printf("left ");
-            //     for(int i=0;i<N_side;i++){
-            //         printf("%f ", left[i]);
-            //     }
-            //     printf("\n");
-            //     printf("right ");
-            //     for(int i=0;i<N_side;i++){
-            //         printf("%f ", right[i]);
-            //     }
-            //     printf("\n");
-            // }
 
             // Update the centre data points
             for (int i = 1; i < N_side - 1; i++) {
@@ -650,29 +594,21 @@ int main(int argc, char *argv[]) {
     
     eTime = MPI_Wtime();    // End timer
 
-    // for (int i = 0; i < N_side; i++) {
-    //     for (int j = 0; j < N_side; j++) {
-    //         printf("%f ", data[i][j]);
-    //     }
-    //     printf("\n");  
-    // }
-    // printf("\n");
-
     double time = eTime - sTime;    
     double max_time;
     MPI_Reduce(&time, &max_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);    // Get the maximum time taken by any process
     
-    write_matrix_to_csv(data, N_side, rank);
-
     if (rank == 0) {
         printf("Time taken for computing %d-point stencil: %f\n", stencil, max_time);
     }
     
     for (int i = 0; i < N_side; i++){
         free(data[i]);
+        // free(data_new[i]);
     }
 
     free(data);
+    // free(data_new);
     MPI_Finalize();
     return 0;
 }

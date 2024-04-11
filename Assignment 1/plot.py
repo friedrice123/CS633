@@ -7,10 +7,10 @@ data_sizes = [512**2, 2048**2]
 stencil_configs = ['5', '9']
 
 actual_time_values = {
-    (512**2, '5'): [0.051235, 0.04091, 0.052509], 
-    (512**2, '9'): [0.059266, 0.074726, 0.066472],
-    (2048**2, '5'): [0.463102, 0.555919, 0.3548],
-    (2048**2, '9'): [0.697287, 0.594133, 0.627878],
+    (512**2, '5'): [0.039124, 0.035880, 0.041945], 
+    (512**2, '9'): [0.060575, 0.05461, 0.058303],
+    (2048**2, '5'): [0.534309, 0.480797, 0.472127],
+    (2048**2, '9'): [0.754163, 0.592364, 0.752245],
 }
 
 data = []
@@ -30,4 +30,5 @@ plt.ylabel('Time (seconds)')
 plt.xlabel('(Data Size, Stencil Configuration)')
 plt.grid(True)
 plt.tight_layout()
-plt.savefig('E:\Sem6\CS633\CS633\Assignment 1\plot.png')
+#Change the path according to your location
+plt.savefig('D:\MPI Ubuntu\CS633\Assignment 1\plot.png')
