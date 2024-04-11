@@ -598,6 +598,8 @@ int main(int argc, char *argv[]) {
     double max_time;
     MPI_Reduce(&time, &max_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);    // Get the maximum time taken by any process
     
+    write_matrix_to_csv(data, N_side, rank);
+
     if (rank == 0) {
         printf("Time taken for computing %d-point stencil: %f\n", stencil, max_time);
     }
