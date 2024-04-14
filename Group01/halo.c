@@ -8,6 +8,7 @@ int main(int argc, char *argv[]) {
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+    // if(rank ==0)printf("%d",argc);
 
     if (argc != 5) {
         if (rank == 0) {
@@ -48,7 +49,7 @@ int main(int argc, char *argv[]) {
     }
     for (double i = 0; i < N_side; i++) {
         for (double j = 0; j < N_side; j++) {
-            data[(int)i][(int)j] = abs((rand() + (i * rand()) + (j * rank)) / 100.0);
+            data[(int)i][(int)j] = abs((rand() + (i * rand()) + (j * rank)));
             // data[(int)i][(int)j] = (i+j);
             data2[(int)i][(int)j] = data[(int)i][(int)j];
         }
